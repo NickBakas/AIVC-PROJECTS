@@ -11,13 +11,13 @@ clc;
 clear all;
 
 tic;
-%1 ΣΥΝΟΛΟ ΠΟΛΕΩΝ
+%1 VARIABLE INITIALIZATION
 CitysumA=100; 
 populationSize=50;
 maxgen=5000;
 
 
-%2 ΑΡΧΙΚΟΠΟΙΗΣΗ ΜΕΤΡΙΚΩΝ
+%2 METRICS INITIALIZATION
 bestFitnessPerGeneration = zeros(maxgen, 1);
 worstFitnessPerGeneration = zeros(maxgen, 1);
 averageFitnessPerGeneration = zeros(maxgen, 1);
@@ -26,13 +26,13 @@ worstTotalDistancesPerGeneration = zeros(maxgen, 1);
 averageTotalDistancesPerGeneration = zeros(maxgen, 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%3 ΤΥΧΑΙΕΣ ΑΠΟΣΤΑΣΕΙΣ ΑΠΟ (0,100), ΣΥΜΜΕΤΡΙΑ ΚΑΙ 0 ΣΤΗ ΔΙΑΓΩΝΙΟ
+%3 RANDOM DISTANCES (0,100), SYMMETRY AND ZEROS ACROSS THE MAIN DIAGONAL
 distances = randi([1, 100], CitysumA, CitysumA);
 distances = triu(distances, 1) + triu(distances, 1)';
 distances = distances - diag(distances);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%4 ΑΡΧΙΚΟΠΟΙΗΣΗ ΠΛΗΘΥΣΜΟΥ
+%4 POPULATION INITIALIZATION
 for i = 1:populationSize
     Population(i, :) = randperm(CitysumA);    
 end
@@ -44,8 +44,8 @@ disp(Population);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for gen = 1:maxgen
 
-    %% ΑΡΧΙΚΟΠΟΙΗΣΗ ΜΕΤΑΒΛΗΤΗΣ ΓΙΑ ΜΕΤΑΦΡΑΣΗ ΑΠΟΣΤΑΣΕΩΝ ΣΕ ΚΩΔΙΚΟ POPULATION
-    %5 Η ΜΕΤΑΒΛΗΤΗ ΘΑ ΒΟΗΘΗΣΕΙ ΣΤΟ ΑΘΡΟΙΣΜΑ ΑΠΟΣΤΑΣΕΩΝ ΓΙΑ ΤΟ FITNESS
+    %% TRANSLATING CITY INDEXES TO DISTANCES
+    %5 THIS WILL HELP DEFINE FITNESS
     calculatedDistances = zeros(size(Population, 1), size(Population, 2) );
     for i = 1:size(Population, 1)
         for j = 1:size(Population, 2)  
@@ -62,8 +62,8 @@ for gen = 1:maxgen
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    %% ΥΠΟΛΟΓΙΣΜΟΣ FITNESS ΩΣ 1/TOTALDISTANCE
-    %6 ΥΠΟΛΟΓΙΣΜΟΣ ΠΙΘΑΝΟΤΗΤΑΣ
+    %%  FITNESS = 1/TOTALDISTANCE
+    %6 CALCULATION OF PROBABILITY
     totalDistances = sum(calculatedDistances, 2);
     disp(totalDistances)
     Fitness = zeros(populationSize, 1);
@@ -86,7 +86,7 @@ for b=1:length(sortedFitness)
 end
 
 
-%% ΔΗΜΙΟΥΡΓΙΑ RANGE ΡΟΥΛΕΤΑΣ ΜΕ ΒΟΗΘΕΙΑ ΠΙΘΑΝΟΤΗΤΑΣ
+%% ROULETTE RANGE CREATION
 %range για δείκτη και αρίθμηση cumsum
     SummedProbability = cumsum(selectionProbability);
     ranges = zeros(populationSize, 1);
@@ -126,7 +126,7 @@ chr=zeros(2,size(Population,2));
     disp('Offspring 2 after Ordered Crossover:');
     disp(off2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
-    %% χαμηλό mutation για προστασία δυνητικά καλού χρωμοσώματος
+    
     mutated = 30; 
     off1 = Mutation_Swap(off1, mutated);
     off2 = Mutation_Swap(off2, mutated);
@@ -135,7 +135,7 @@ chr=zeros(2,size(Population,2));
     disp('Offspring 2 after Mutation:');
     disp(off2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-    %% Υπολογισμός απόστασης απο πόλη σε πόλη με δείκτες y1,y2
+    %% DISTANCES CALCUTION FOR THE OFFSPRING
     %9-10
     off1Distances = zeros(1, CitysumA);
     for i = 1:CitysumA
@@ -162,7 +162,7 @@ chr=zeros(2,size(Population,2));
     newOffspringFitness1 = 1 / sum(off1Distances);
     newOffspringFitness2 = 1 / sum(off2Distances);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-    %% Index και αντικατάσταση των χειρότερων χρωμοσωμάτων με τα νέα
+    %% INDEXING AND REPLACEMENT IN THE POPULATION (IF THE FITNESS EXCELS)
     
     [sortedFitness2,sortedIdx2] = sort(Fitness,'ascend');
     lowestFitness = sortedIdx2(1:2);
@@ -192,7 +192,7 @@ end
 
 
 %% Convergence Best, Average, Worst Fitness
-%12 PLOT TA METRICS
+%12 PLOT METRICS
 
 figure;
 plot(1:maxgen, bestFitnessPerGeneration, 'color',[1, 0.549, 0], 'LineWidth', 1);
